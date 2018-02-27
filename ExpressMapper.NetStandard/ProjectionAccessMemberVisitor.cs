@@ -29,7 +29,7 @@ namespace ExpressMapper
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            if (node.Expression.Type == _type)
+            if (node.Expression != null && node.Expression.Type == _type)
             {
                 return Expression.PropertyOrField(_exp, node.Member.Name);
             }
