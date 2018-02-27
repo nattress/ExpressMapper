@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ExpressMapper
 {
@@ -182,7 +183,7 @@ namespace ExpressMapper
             var destCollection = typeof(ICollection<>).MakeGenericType(destType);
 
             BlockExpression resultExpression;
-            var isICollection = !destVariable.Type.IsArray && (destVariable.Type.GetInfo().GetInterfaces()
+            var isICollection = !destVariable.Type.IsArray && (destVariable.Type.GetInterfaces()
                                                                    .FirstOrDefault(t => t.GetInfo().IsGenericType && t.GetGenericTypeDefinition() == typeof(ICollection<>)) != null ||
                                                                destVariable.Type == destCollection);
 
@@ -196,7 +197,7 @@ namespace ExpressMapper
                 var equalsBlockExp = MapCollectionCountEquals(tCol, tnCol, sourceVariable, destVariable);
 
                 var getFirstEnumExp = Expression.Call(typeof(Enumerable), "First", new[] { destType }, destVariable);
-                var removeCollFirstExp = Expression.Call(destVariable, destCollection.GetInfo().GetMethod("Remove"),
+                var removeCollFirstExp = Expression.Call(destVariable, destCollection.GetMethod("Remove"),
                     getFirstEnumExp);
 
                 var brkColRem = Expression.Label();
@@ -223,7 +224,7 @@ namespace ExpressMapper
 
                 var destListType = typeof(List<>).MakeGenericType(destType);
                 var destVarExp = Expression.Variable(destListType, $"{Guid.NewGuid().ToString("N")}InterimDst");
-                var constructorInfo = destListType.GetInfo().GetConstructor(new Type[] { typeof(int) });
+                var constructorInfo = destListType.GetConstructor(new Type[] { typeof(int) });
 
                 var newColl = Expression.New(constructorInfo, srcCount);
                 var destAssign = Expression.Assign(destVarExp, newColl);
@@ -234,8 +235,8 @@ namespace ExpressMapper
                 var enumeratorSrc = Expression.Variable(closedEnumeratorSourceType,
                     $"{Guid.NewGuid().ToString("N")}EnumSrc");
                 var assignToEnumSrc = Expression.Assign(enumeratorSrc,
-                    Expression.Call(sourceVariable, closedEnumerableSourceType.GetInfo().GetMethod("GetEnumerator")));
-                var doMoveNextSrc = Expression.Call(enumeratorSrc, typeof(IEnumerator).GetInfo().GetMethod("MoveNext"));
+                    Expression.Call(sourceVariable, closedEnumerableSourceType.GetMethod("GetEnumerator")));
+                var doMoveNextSrc = Expression.Call(enumeratorSrc, typeof(IEnumerator).GetMethod("MoveNext"));
                 var currentSrc = Expression.Property(enumeratorSrc, "Current");
 
                 var srcItmVarExp = Expression.Variable(sourceType, $"{Guid.NewGuid().ToString("N")}ItmSrc");
@@ -247,8 +248,8 @@ namespace ExpressMapper
                 var enumeratorDest = Expression.Variable(closedEnumeratorDestType,
                     $"{Guid.NewGuid():N}EnumDst");
                 var assignToEnumDest = Expression.Assign(enumeratorDest,
-                    Expression.Call(destVariable, closedEnumerableDestType.GetInfo().GetMethod("GetEnumerator")));
-                var doMoveNextDest = Expression.Call(enumeratorDest, typeof(IEnumerator).GetInfo().GetMethod("MoveNext"));
+                    Expression.Call(destVariable, closedEnumerableDestType.GetMethod("GetEnumerator")));
+                var doMoveNextDest = Expression.Call(enumeratorDest, typeof(IEnumerator).GetMethod("MoveNext"));
 
                 var currentDest = Expression.Property(enumeratorDest, "Current");
                 var destItmVarExp = Expression.Variable(destType, $"{Guid.NewGuid().ToString("N")}ItmDst");
@@ -299,8 +300,8 @@ namespace ExpressMapper
             var closedEnumerableSourceType = GenericEnumerableType.MakeGenericType(sourceType);
             var enumeratorSrc = Expression.Variable(closedEnumeratorSourceType, $"{Guid.NewGuid().ToString("N")}EnumSrc");
             var assignToEnumSrc = Expression.Assign(enumeratorSrc,
-                Expression.Call(sourceVariable, closedEnumerableSourceType.GetInfo().GetMethod("GetEnumerator")));
-            var doMoveNextSrc = Expression.Call(enumeratorSrc, typeof(IEnumerator).GetInfo().GetMethod("MoveNext"));
+                Expression.Call(sourceVariable, closedEnumerableSourceType.GetMethod("GetEnumerator")));
+            var doMoveNextSrc = Expression.Call(enumeratorSrc, typeof(IEnumerator).GetMethod("MoveNext"));
             var currentSrc = Expression.Property(enumeratorSrc, "Current");
             var srcItmVarExp = Expression.Variable(sourceType, $"{Guid.NewGuid().ToString("N")}ItmSrc");
             var assignSourceItmFromProp = Expression.Assign(srcItmVarExp, currentSrc);
@@ -310,8 +311,8 @@ namespace ExpressMapper
             var closedEnumerableDestType = GenericEnumerableType.MakeGenericType(destType);
             var enumeratorDest = Expression.Variable(closedEnumeratorDestType, $"{Guid.NewGuid().ToString("N")}EnumDst");
             var assignToEnumDest = Expression.Assign(enumeratorDest,
-                Expression.Call(destVariable, closedEnumerableDestType.GetInfo().GetMethod("GetEnumerator")));
-            var doMoveNextDest = Expression.Call(enumeratorDest, typeof(IEnumerator).GetInfo().GetMethod("MoveNext"));
+                Expression.Call(destVariable, closedEnumerableDestType.GetMethod("GetEnumerator")));
+            var doMoveNextDest = Expression.Call(enumeratorDest, typeof(IEnumerator).GetMethod("MoveNext"));
             var currentDest = Expression.Property(enumeratorDest, "Current");
             var destItmVarExp = Expression.Variable(destType, $"{Guid.NewGuid().ToString("N")}ItmDst");
             var assignDestItmFromProp = Expression.Assign(destItmVarExp, currentDest);
@@ -350,8 +351,8 @@ namespace ExpressMapper
             var closedEnumerableSourceType = GenericEnumerableType.MakeGenericType(sourceType);
             var enumeratorSrc = Expression.Variable(closedEnumeratorSourceType, $"{Guid.NewGuid().ToString("N")}EnumSrc");
             var assignToEnumSrc = Expression.Assign(enumeratorSrc,
-                Expression.Call(sourceVariable, closedEnumerableSourceType.GetInfo().GetMethod("GetEnumerator")));
-            var doMoveNextSrc = Expression.Call(enumeratorSrc, typeof(IEnumerator).GetInfo().GetMethod("MoveNext"));
+                Expression.Call(sourceVariable, closedEnumerableSourceType.GetMethod("GetEnumerator")));
+            var doMoveNextSrc = Expression.Call(enumeratorSrc, typeof(IEnumerator).GetMethod("MoveNext"));
             var currentSrc = Expression.Property(enumeratorSrc, "Current");
 
             var srcItmVarExp = Expression.Variable(sourceType, $"{Guid.NewGuid().ToString("N")}ItmSrc");
@@ -362,8 +363,8 @@ namespace ExpressMapper
             var closedEnumerableDestType = GenericEnumerableType.MakeGenericType(destType);
             var enumeratorDest = Expression.Variable(closedEnumeratorDestType, $"{Guid.NewGuid().ToString("N")}EnumDst");
             var assignToEnumDest = Expression.Assign(enumeratorDest,
-                Expression.Call(destVariable, closedEnumerableDestType.GetInfo().GetMethod("GetEnumerator")));
-            var doMoveNextDest = Expression.Call(enumeratorDest, typeof(IEnumerator).GetInfo().GetMethod("MoveNext"));
+                Expression.Call(destVariable, closedEnumerableDestType.GetMethod("GetEnumerator")));
+            var doMoveNextDest = Expression.Call(enumeratorDest, typeof(IEnumerator).GetMethod("MoveNext"));
 
             var currentDest = Expression.Property(enumeratorDest, "Current");
             var destItmVarExp = Expression.Variable(destType, $"{Guid.NewGuid().ToString("N")}ItmDst");
@@ -376,7 +377,7 @@ namespace ExpressMapper
 
             var destCollection = typeof(ICollection<>).MakeGenericType(destType);
 
-            var addToNewCollNew = Expression.Call(destVariable, destCollection.GetInfo().GetMethod("Add"), destItmVarExp);
+            var addToNewCollNew = Expression.Call(destVariable, destCollection.GetMethod("Add"), destItmVarExp);
 
             var ifFalseBlock = Expression.Block(new ParameterExpression[] { }, new[] { mapExprForType, addToNewCollNew });
 

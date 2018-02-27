@@ -87,7 +87,7 @@ namespace ExpressMapper
                     clonedList.Add(matchedStartSrcProp);
                     ScanSourceClassRecursively(classProps, destProp, matchStart, clonedList.ToArray());
                 }
-                else if (matchedStartSrcProp.PropertyType.GetInfo().GetInterfaces().Any(i => i.Name == "IEnumerable"))
+                else if (matchedStartSrcProp.PropertyType.GetInterfaces().Any(i => i.Name == "IEnumerable"))
                 {
                     //its an enumerable class so see if the end relates to a LINQ method
                     var endOfName = destProp.Name.Substring(matchStart.Length);
@@ -108,7 +108,7 @@ namespace ExpressMapper
 
         private static PropertyInfo[] GetPropertiesRightAccess(Type classType)
         {
-            return classType.GetInfo().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            return classType.GetRuntimeProperties().Where(x => x.GetMethod.IsPublic && !x.GetMethod.IsStatic).ToArray();
         }
 
         private List<PropertyInfo> FilterOutExactMatches(PropertyInfo[] propsToFilter, PropertyInfo[] filterAgainst)

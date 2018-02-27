@@ -182,7 +182,7 @@ namespace ExpressMapper
             var castToCustomGeneric = Expression.Convert(Expression.Constant((ITypeMapper)this), customGenericType);
             var genVariable = Expression.Variable(customGenericType);
             var assignExp = Expression.Assign(genVariable, castToCustomGeneric);
-            var methodInfo = customGenericType.GetInfo().GetMethod("MapTo", new[] { typeof(T), typeof(TN) });
+            var methodInfo = customGenericType.GetMethod("MapTo", new[] { typeof(T), typeof(TN) });
 
             var mapCall = Expression.Call(genVariable, methodInfo, srcTypedExp, dstTypedExp);
             var resultVarExp = Expression.Variable(typeof(object), "result");
@@ -200,9 +200,9 @@ namespace ExpressMapper
 
         protected void AutoMapProperty(MemberInfo propertyGet, MemberInfo propertySet)
         {
-            var callSetPropMethod = propertySet.MemberType == MemberTypes.Field ? Expression.Field(DestFakeParameter, propertySet as FieldInfo) : Expression.Property(DestFakeParameter, propertySet as PropertyInfo);
-            var callGetPropMethod = propertyGet.MemberType == MemberTypes.Field ? Expression.Field(SourceParameter, propertyGet as FieldInfo) : Expression.Property(SourceParameter, propertyGet as PropertyInfo);
-
+            var callSetPropMethod = propertySet is FieldInfo ? Expression.Field(DestFakeParameter, propertySet as FieldInfo) : Expression.Property(DestFakeParameter, propertySet as PropertyInfo);
+            var callGetPropMethod = propertyGet is FieldInfo ? Expression.Field(SourceParameter, propertyGet as FieldInfo) : Expression.Property(SourceParameter, propertyGet as PropertyInfo);
+            
             MapMember(callSetPropMethod, callGetPropMethod);
         }
 
@@ -270,28 +270,28 @@ namespace ExpressMapper
             return Expression.Assign(DestFakeParameter, createDestination);
         }
 
+        FieldInfo[] GetAllPublicInstanceFieldsForType(Type t)
+        {
+            return typeof(T).GetRuntimeFields().Where(x => x.IsPublic && !x.IsStatic).ToArray();
+        }
+        
+
         protected void ProcessAutoProperties()
         {
-            var getFields =
-                typeof(T).GetInfo()
-                    .GetFields(BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.Public);
-            var setFields =
-                typeof(TN).GetInfo()
-                    .GetFields(BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.Public);
 
-            var getProps =
-                typeof(T).GetInfo()
-                    .GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.Public);
+            var getFields = GetAllPublicInstanceFieldsForType(typeof(T));
 
-            var setProps =
-                typeof(TN).GetInfo()
-                    .GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.Public);
+            var setFields = GetAllPublicInstanceFieldsForType(typeof(TN));
 
+            var getProps = typeof(T).GetRuntimeProperties().ToArray();
+
+            var setProps = typeof(TN).GetRuntimeProperties().ToArray();
+                
             var sourceMembers = getFields.Cast<MemberInfo>().Union(getProps);
             var destMembers = setFields.Cast<MemberInfo>().Union(setProps);
 
             var stringComparison = GetStringCase();
-
+            
             var comparer = CultureInfo.CurrentCulture.CompareInfo.GetStringComparer(CompareOptions.OrdinalIgnoreCase);
             //var comparer = StringComparer.Create(CultureInfo.CurrentCulture,
             //    stringComparison == StringComparison.OrdinalIgnoreCase);
@@ -317,7 +317,7 @@ namespace ExpressMapper
 
                 var propertyInfo = setprop as PropertyInfo;
                 if ((propertyInfo == null && setprop == null) ||
-                    (propertyInfo != null && (!propertyInfo.CanWrite || !propertyInfo.GetSetMethod(true).IsPublic)))
+                    (propertyInfo != null && (!propertyInfo.CanWrite || !propertyInfo.SetMethod.IsPublic)))
                 {
                     IgnoreMemberList.Add(getprop.Name);
                     continue;
@@ -339,7 +339,7 @@ namespace ExpressMapper
                 }
                 else
                 {
-                    chosen = chosen.DeclaringType.GetInfo().IsAssignableFrom(notUniqueMember.DeclaringType)
+                    chosen = chosen.DeclaringType.IsAssignableFrom(notUniqueMember.DeclaringType)
                         ? notUniqueMember
                         : chosen;
                 }
@@ -560,7 +560,7 @@ namespace ExpressMapper
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            return node.Member.DeclaringType.GetInfo().IsAssignableFrom(_replacementType)
+            return node.Member.DeclaringType.IsAssignableFrom(_replacementType)
                 ? Expression.PropertyOrField(_instanceExp, node.Member.Name)
                 : base.VisitMember(node);
         }

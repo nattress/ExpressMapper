@@ -61,9 +61,9 @@ namespace ExpressMapper
 
         public MethodCallExpression AsMethodCallExpression(Expression propertyExpression, PropertyInfo propertyToActOn, PropertyInfo destProperty)
         {
-            var ienumerableType = propertyToActOn.PropertyType.GetInfo().GetGenericArguments().Single();
+            var ienumerableType = propertyToActOn.PropertyType.GetGenericArguments().Single();
 
-            var foundMethodInfo = typeof (Enumerable).GetInfo().GetMethods()
+            var foundMethodInfo = typeof (Enumerable).GetMethods()
                 .SingleOrDefault(m => m.Name == _methodName && m.GetParameters().Length == 1
                         && (!_checkReturnType || m.ReturnType == destProperty.PropertyType));
 

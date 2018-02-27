@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ExpressMapper
 {
@@ -20,7 +21,7 @@ namespace ExpressMapper
         protected override void InitializeRecursiveMappings(IMappingServiceProvider serviceProvider)
         {
             var mapMethod =
-                typeof(IMappingServiceProvider).GetInfo().GetMethods()
+                typeof(IMappingServiceProvider).GetMethods()
                     .First(mi => mi.Name == MapStr && mi.GetParameters().Length == 2)
                     .MakeGenericMethod(typeof(T), typeof(TN));
 

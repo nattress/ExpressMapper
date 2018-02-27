@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ExpressMapper
 {
@@ -53,15 +54,15 @@ namespace ExpressMapper
         protected override bool ComplexMapCondition(Type src, Type dst)
         {
             var tCol =
-                src.GetInfo().GetInterfaces()
+                src.GetInterfaces()
                     .FirstOrDefault(t => t.GetInfo().IsGenericType && t.GetGenericTypeDefinition() == GenericEnumerableType) ??
                 (src.GetInfo().IsGenericType
-                 && src.GetInfo().GetInterfaces().Any(t => t == typeof(IEnumerable)) ? src
+                 && src.GetInterfaces().Any(t => t == typeof(IEnumerable)) ? src
                     : null);
 
-            var tnCol = dst.GetInfo().GetInterfaces()
+            var tnCol = dst.GetInterfaces()
                             .FirstOrDefault(t => t.GetInfo().IsGenericType && t.GetGenericTypeDefinition() == GenericEnumerableType) ??
-                        (dst.GetInfo().IsGenericType && dst.GetInfo().GetInterfaces().Any(t => t == typeof(IEnumerable)) ? dst
+                        (dst.GetInfo().IsGenericType && dst.GetInterfaces().Any(t => t == typeof(IEnumerable)) ? dst
                             : null);
             if (tCol == null || tnCol == null || (src == typeof(string) && dst == typeof(string)))
                 return (base.ComplexMapCondition(src, dst) ||
